@@ -7,8 +7,13 @@ def products():
                  'Notebook': {'qnt': 5, 'unit_price': 7.5, 'discount': 10}}
     return products
 
-#def test_CanFindInvoiceClass():
- #   invoice = Invoice()
+@pytest.fixture()
+def products1():
+    products1 = { 'Pen': {'qnt': 14, 'unit_price': 3.75, 'discount': 5},
+                 'Notebook': {'qnt': 5, 'unit_price': 7.5, 'discount': 10}}
+    return products1
+
+
 
 
 @pytest.fixture()
@@ -27,3 +32,11 @@ def test_CanCalculateTotalDiscount(invoice, products):
 def test_CanCalculateTotalPurePrice(invoice, products):
     invoice.totalPurePrice(products)
     assert invoice.totalPurePrice(products) == 69.38
+
+def test_CanCalculateBulkDiscount(invoice, products1):
+    invoice.totalDiscount(products1)
+    assert invoice.totalDiscount(products1) == 5.85
+
+def test_CanCalculateAverageDiscount(invoice, products):
+    invoice.averageDiscount(products)
+    assert invoice.averageDiscount(products) == 2.67

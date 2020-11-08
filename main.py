@@ -3,6 +3,7 @@ from Invoice import Invoice
 products = {}
 total_amount = 0
 repeat = ''
+
 while True:
     product = input('What is your product : ')
     unit_price = Invoice().inputNumber("Please enter unit price : ")
