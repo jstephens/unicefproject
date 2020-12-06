@@ -24,18 +24,17 @@ df_global = pd.read_csv('../Datasets/reg_glob_est.csv')
 df_totalpop = pd.read_excel('../Datasets/totalpopulation.xls')
 
 
-#to do: combine these 2 statements into 1
+#======= Altering the df_country dataframe ============================================
 df_country = df_country[df_country.Uncertainty != 'Lower']
 df_country = df_country[df_country.Uncertainty != 'Upper']
 df_country.drop(['Uncertainty'], axis='columns', inplace=True)
-
-df_country.drop(df_country.iloc[:, 3:35], inplace = True, axis = 1)  #temporary measure to reduce time to load
+df_country.drop(df_country.iloc[:, 2:35], inplace = True, axis = 1)  #temporary measure to reduce time to load
 df_country.dropna
-
 df_country = df_country.rename(columns={'ISO.Code': 'ISOCode', 'Country.Name': 'CountryName'})
 df_country.drop(df_country.tail(1).index,inplace=True)
-
 df_country = pd.melt(df_country,id_vars=['ISOCode','CountryName'], var_name="Year", value_name="Deaths")
+#======================================================================================
+
 
 
 fig = px.choropleth(data_frame = df_country,
