@@ -14,7 +14,7 @@ from plotly.offline import download_plotlyjs, init_notebook_mode, plot, iplot
 import pycountry
 
 #Unclear if this enhances the end result at all:
-#init_notebook_mode(connected=True)
+init_notebook_mode(connected=True)
 
 app = dash.Dash()
 
@@ -28,33 +28,37 @@ df_totalpop = pd.read_excel('../Datasets/totalpopulation.xls')
 df_country = df_country[df_country.Uncertainty != 'Lower']
 df_country = df_country[df_country.Uncertainty != 'Upper']
 df_country.drop(['Uncertainty'], axis='columns', inplace=True)
+
+df_country.drop(df_country.iloc[:, 3:35], inplace = True, axis = 1)  #temporary measure to reduce time to load
+df_country.dropna
+
 df_country = df_country.rename(columns={'ISO.Code': 'ISOCode', 'Country.Name': 'CountryName'})
 df_country.drop(df_country.tail(1).index,inplace=True)
-                   
+
 df_country = pd.melt(df_country,id_vars=['ISOCode','CountryName'], var_name="Year", value_name="Deaths")
 
-print(df_country)
+
+fig = px.choropleth(data_frame = df_country,
+                    locations= "ISOCode",
+                    color= "Deaths",
+                    hover_name= "CountryName",
+                    color_continuous_scale= 'RdYlGn',
+                    animation_frame= "Year")
 
 
-# =============================================================================
-# app.layout = html.Div(children=[
-#      html.H1(children='National Child Mortality Data versus World Bank Funding ',
-#              style={
-#                  'textAlign': 'center',
-#                  'color': '#ef3e18'
-#              }
-#              ),
-#      html.Div('Web dashboard for Data Visualization using Python', style={'textAlign': 'center'}),    
-#      html.Div([dcc.Graph(figure=fig)
-#  ])])
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# if __name__ == '__main__':
-#      app.run_server()
-# 
-# =============================================================================
+# Layout
+app.layout = html.Div(children=[
+    html.H1(children='Python Dash',
+            style={
+                'textAlign': 'center',
+                'color': '#ef3e18'
+            }
+            ),
+    html.Div('Web dashboard for Data Visualization using Python', style={'textAlign': 'center'}),
+    dcc.Graph(figure=fig),
+    ])
+
+if __name__ == '__main__':
+      app.run_server()
+
+
