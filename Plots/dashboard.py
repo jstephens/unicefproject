@@ -6,6 +6,7 @@ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 import pandas as pd
+import numpy as np
 import plotly.graph_objs as go
 import plotly.express as px
 import plotly.offline as offline
@@ -23,20 +24,21 @@ df_country = pd.read_csv('../Datasets/country_est.csv')
 df_global = pd.read_csv('../Datasets/reg_glob_est.csv')
 df_totalpop = pd.read_excel('../Datasets/totalpopulation.xls',sheet_name='ESTIMATES',
                             skiprows=range(0,16))
+df_aid = pd.read_csv('../Datasets/netdevelopment.csv')
 
-#======= Altering the df_country dataframe ============================================
+#======= Altering the df_country dataframe ====================================
 df_country = df_country[df_country.Uncertainty != 'Lower']
 df_country = df_country[df_country.Uncertainty != 'Upper']
 df_country.drop(['Uncertainty'], axis='columns', inplace=True)
-df_country.drop(df_country.iloc[:, 2:35], inplace = True, axis = 1)  #temporary measure to reduce time to load
+#df_country.drop(df_country.iloc[:, 2:35], inplace = True, axis = 1)  #temporary measure to reduce time to load
 df_country.dropna
 df_country = df_country.rename(columns={'ISO.Code': 'ISOCode', 'Country.Name': 'CountryName'})
 df_country.drop(df_country.tail(1).index,inplace=True)
 df_country1 = df_country.copy(deep=False)
 df_country = pd.melt(df_country,id_vars=['ISOCode','CountryName'], var_name="Year", value_name="Deaths")
-#======================================================================================
+#==============================================================================
 
-#======= Altering the df_country dataframe ============================================
+#======= Altering the df_country dataframe ====================================
 df_totalpop.drop(['Index','Variant','Notes','Country code','Parent code','1950','1951','1952','1953','1954','2020'], axis='columns', inplace=True)
 df_totalpop = df_totalpop[df_totalpop.Type != 'World']
 df_totalpop = df_totalpop[df_totalpop.Type != 'Region']
@@ -49,27 +51,27 @@ df_totalpop = df_totalpop[df_totalpop.Type != 'SDG region']
 df_totalpop.drop(['Type'], axis='columns', inplace=True)
 df_totalpop = df_totalpop.rename(columns={'Region, subregion, country or area *': 'CountryName'})
 df_totalpop = pd.melt(df_totalpop,id_vars=['CountryName'],var_name="Year",value_name="Population")
-#======================================================================================
+#==============================================================================
+
+#======= Merged dataframe; cases per capita ===================================
+merged_df = pd.merge(df_country, df_totalpop,  how='left', left_on=['CountryName','Year'], right_on = ['CountryName','Year'])
+merged_df['Deaths'] = merged_df['Deaths'].astype(float)
+merged_df['Population'] = merged_df['Population'].astype(float)
+merged_df['DeathsC'] = merged_df['Deaths']/merged_df['Population']
+print(merged_df)
+#==============================================================================
 
 
-# to do: create merged dataframe: country,year,child deaths, total pop, child deaths per capita
-# print("Total population:")
-# print(df_totalpop.keys())
-# print(df_totalpop)
-# print("Country deaths:")
-# print(df_country.keys())
-# print(df_country)
-# df_country.merge(df_totalpop,on='CountryName')
-# print(df_country)
-
-fig = px.choropleth(data_frame = df_country,
+#======= Chloropleth map ======================================================
+fig = px.choropleth(data_frame = merged_df,
                     locations= "ISOCode",
-                    color= "Deaths",
+                    color= "DeathsC",
                     hover_name= "CountryName",
                     color_continuous_scale= 'RdYlGn_r',
                     animation_frame= "Year")
+#==============================================================================
 
-#=======Interactive line chart ======================================================
+#=======Interactive line chart ================================================
 df_country1 = df_country1.set_index(['CountryName'])
 df_country1.drop(['ISOCode'], axis='columns', inplace=True)
 df_country1 = df_country1.T
@@ -111,7 +113,7 @@ fig1.show()
 #==============================================================================
 
 
-# Layout
+#====== Layout for dash =======================================================
 app.layout = html.Div(children=[
     html.H1(children='Python Dash',
             style={
@@ -129,6 +131,7 @@ app.layout = html.Div(children=[
     html.Div('Same data, with a dropdown.'),
     dcc.Graph(figure=fig1),
     ])
+#==============================================================================
 
 if __name__ == '__main__':
       app.run_server()
